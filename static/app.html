@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Curriculum Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+
+    [data-theme="dark"] {
+      --primary: #818cf8;
+      --primary-dark: #6366f1;
+      --text: #f1f5f9;
+      --text-light: #94a3b8;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --success: #34d399;
+      --error: #f87171;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(90deg, var(--primary), #a855f7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 1.25rem;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background-color: var(--card-bg);
+      color: var(--text);
+      resize: vertical;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background-color: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--border);
+      transform: translateY(-2px);
+    }
+
+    #loading {
+      margin: 1rem 0;
+      font-style: italic;
+      color: var(--text-light);
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    #output {
+      background-color: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      border: 1px solid var(--border);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.7;
+      margin-top: 1.5rem;
+      transition: all 0.3s ease;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    #output::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #output::-webkit-scrollbar-track {
+      background: var(--bg);
+      border-radius: 10px;
+    }
+
+    #output::-webkit-scrollbar-thumb {
+      background-color: var(--primary);
+      border-radius: 10px;
+    }
+
+    #metaStats {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-light);
+      display: flex;
+      gap: 1rem;
+    }
+
+    .stats-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .suggestions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .suggestion {
+      background-color: var(--primary);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .suggestion:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .container {
+        padding: 1.5rem;
+      }
+      
+      .btn-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-robot"></i> AI Curriculum Planner</h1>
+      <div class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+        <span>Dark Mode</span>
+      </div>
+    </div>
+
+    <div class="suggestions">
+      <div class="suggestion" onclick="useSuggestion('Learn Web Development in 3 months')">Web Dev</div>
+      <div class="suggestion" onclick="useSuggestion('Data Science roadmap for beginners')">Data Science</div>
+      <div class="suggestion" onclick="useSuggestion('Machine Learning specialization plan')">ML Specialization</div>
+      <div class="suggestion" onclick="useSuggestion('Python programming crash course')">Python Crash</div>
+    </div>
+
+    <textarea id="input" placeholder="Describe what you want to learn (e.g., 'Comprehensive AI curriculum for beginners with weekly milestones')"></textarea>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="generateBtn">
+        <i class="fas fa-bolt"></i> Generate Plan
+      </button>
+      <button class="btn btn-secondary" id="copyBtn">
+        <i class="far fa-copy"></i> Copy
+      </button>
+      <button class="btn btn-secondary" id="downloadBtn">
+        <i class="fas fa-download"></i> Download
+      </button>
+      <button class="btn btn-secondary" id="clearBtn">
+        <i class="fas fa-broom"></i> Clear
+      </button>
+    </div>
+
+    <div id="loading">
+      <i class="fas fa-spinner fa-spin"></i> Crafting your personalized curriculum...
+    </div>
+
+    <div id="output" class="fade-in"></div>
+    <div id="metaStats"></div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const input = document.getElementById("input");
+      const generateBtn = document.getElementById("generateBtn");
+      const output = document.getElementById("output");
+      const loading = document.getElementById("loading");
+      const copyBtn = document.getElementById("copyBtn");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const metaStats = document.getElementById("metaStats");
+      const themeToggle = document.getElementById("themeToggle");
+      const suggestions = document.querySelectorAll(".suggestion");
+
+      // Theme toggle
+      themeToggle.addEventListener("click", function () {
+        document.body.setAttribute(
+          "data-theme",
+          document.body.getAttribute("data-theme") === "dark" ? "light" : "dark"
+        );
+        
+        const icon = this.querySelector("i");
+        if (document.body.getAttribute("data-theme") === "dark") {
+          icon.classList.replace("fa-moon", "fa-sun");
+          this.querySelector("span").textContent = "Light Mode";
+        } else {
+          icon.classList.replace("fa-sun", "fa-moon");
+          this.querySelector("span").textContent = "Dark Mode";
+        }
+      });
+
+      // Set initial theme based on system preference
+      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.body.setAttribute("data-theme", "dark");
+        themeToggle.querySelector("i").classList.replace("fa-moon", "fa-sun");
+        themeToggle.querySelector("span").textContent = "Light Mode";
+      }
+
+      // Suggestion click handler
+      function useSuggestion(text) {
+        input.value = text;
+        input.focus();
+      }
+
+      // Generate curriculum
+      generateBtn.addEventListener("click", async () => {
+        const query = input.value.trim();
+        if (!query) {
+          showAlert("Please enter a learning request", "error");
+          return;
+        }
+
+        loading.style.display = "flex";
+        output.textContent = "";
+        metaStats.textContent = "";
+
+        try {
+          const response = await fetch("/generate-plan", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ user_input: query }),
+          });
+
+          const data = await response.json();
+          if (data.curriculum) {
+            output.innerHTML = marked.parse(data.curriculum);
+            output.classList.add("fade-in");
+            updateStats(data.curriculum);
+            showAlert("Plan generated successfully!", "success");
+          } else {
+            showAlert("Failed to generate plan", "error");
+          }
+        } catch (error) {
+          showAlert("API Error: " + error.message, "error");
+        } finally {
+          loading.style.display = "none";
+        }
+      });
+
+      // Copy to clipboard
+      copyBtn.addEventListener("click", () => {
+        const text = output.textContent;
+        if (text) {
+          navigator.clipboard.writeText(text).then(() => {
+            showAlert("Plan copied to clipboard!", "success");
+          });
+        }
+      });
+
+      // Download as file
+      downloadBtn.addEventListener("click", () => {
+        const text = output.textContent;
+        if (text) {
+          const blob = new Blob([text], { type: "text/markdown" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `ai-curriculum-${new Date().toISOString().slice(0,10)}.md`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showAlert("Download started", "success");
+        }
+      });
+
+      // Clear all
+      clearBtn.addEventListener("click", () => {
+        input.value = "";
+        output.textContent = "";
+        metaStats.textContent = "";
+      });
+
+      // Update stats
+      function updateStats(text) {
+        const words = text.split(/\s+/).filter(Boolean).length;
+        const minutes = Math.ceil(words / 200);
+        const chars = text.length;
+        
+        metaStats.innerHTML = `
+          <div class="stats-item"><i class="fas fa-font"></i> ${words} words</div>
+          <div class="stats-item"><i class="fas fa-clock"></i> ~${minutes} min read</div>
+          <div class="stats-item"><i class="fas fa-ruler-horizontal"></i> ${chars.toLocaleString()} chars</div>
+        `;
+      }
+
+      // Show alert notification
+      function showAlert(message, type) {
+        const alert = document.createElement("div");
+        alert.className = `alert alert-${type}`;
+        alert.innerHTML = `
+          <i class="fas fa-${type === "success" ? "check-circle" : "exclamation-circle"}"></i>
+          ${message}
+        `;
+        
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 3000);
+      }
+
+      // Add markdown support
+      const markedScript = document.createElement("script");
+      markedScript.src = "https://cdn.jsdelivr.net/npm/marked/marked.min.js";
+      document.head.appendChild(markedScript);
+    });
+
+    // Expose suggestion function globally
+    function useSuggestion(text) {
+      document.getElementById("input").value = text;
+      document.getElementById("input").focus();
+    }
+  </script>
+</body>
+</html>
